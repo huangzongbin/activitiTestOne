@@ -13,7 +13,6 @@ import org.activiti.engine.task.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.security.auth.login.LoginContext;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -48,35 +47,11 @@ public class DemoMain {
 			TaskService taskService = processEngine.getTaskService();
 			// 获取处理任务列表
 			List<Task> list = taskService.createTaskQuery().list();
-			if (list.size()==0)break;
+			if (list.size()==0){ break;}
 			log.info("处理任务数量[{}]", list.size());
 			for (Task task : list) {
 				log.info("待处理任务[{}]", task.getName());
-
-				//获取表单的参数
-				FormService formservice = processEngine.getFormService();
-				TaskFormData taskFormData = formservice.getTaskFormData(task.getId());
-				// 获取参数列表
-				List<FormProperty> formProperties = taskFormData.getFormProperties();
-				HashMap<String, Object> map = new HashMap<String, Object>(5);
-				for (FormProperty formProperty : formProperties) {
-					String line = null;
-					if (StringFormType.class.isInstance(formProperty.getType())) {
-						log.info("请输入{}", formProperty.getName());
-						line = scanner.nextLine();
-						map.put(formProperty.getId(), line);
-					} else if (DateFormType.class.isInstance(formProperty.getType())) {
-						log.info("您要输入{}格式为(yyyy-MM-dd)", formProperty.getName());
-						line = scanner.nextLine();
-						SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-						Date date = format.parse(line);
-						map.put(formProperty.getId(), date);
-					} else {
-						log.info("不支持该类型{}", formProperty.getType());
-					}
-					log.info("您输入的内容是[{}]", line);
-				}
-
+				HashMap<String, Object> map = getStringObjectHashMap(processEngine, scanner, task);
 				// 单个流程结束
 				taskService.complete(task.getId(), map);
 				// 查看当前流程实例状态
@@ -86,7 +61,44 @@ public class DemoMain {
 						.singleResult();
 			}
 		}
+		scanner.close();
 		log.info("结束程序");
+	}
+
+
+	/**
+	 *  获取一个任务的变量
+	 * @param processEngine
+	 * @param scanner
+	 * @param task
+	 * @return
+	 * @throws ParseException
+	 */
+	private static HashMap<String, Object> getStringObjectHashMap(ProcessEngine processEngine, Scanner scanner, Task task) throws ParseException {
+		//获取表单的参数
+		FormService formservice = processEngine.getFormService();
+		TaskFormData taskFormData = formservice.getTaskFormData(task.getId());
+		// 获取参数列表
+		List<FormProperty> formProperties = taskFormData.getFormProperties();
+		HashMap<String, Object> map = new HashMap<String, Object>(5);
+		for (FormProperty formProperty : formProperties) {
+			String line = null;
+			if (StringFormType.class.isInstance(formProperty.getType())) {
+				log.info("请输入{}", formProperty.getName());
+				line = scanner.nextLine();
+				map.put(formProperty.getId(), line);
+			} else if (DateFormType.class.isInstance(formProperty.getType())) {
+				log.info("您要输入{}格式为(yyyy-MM-dd)", formProperty.getName());
+				line = scanner.nextLine();
+				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+				Date date = format.parse(line);
+				map.put(formProperty.getId(), date);
+			} else {
+				log.info("不支持该类型{}", formProperty.getType());
+			}
+			log.info("您输入的内容是[{}]", line);
+		}
+		return map;
 	}
 
 	/**
