@@ -72,6 +72,26 @@ public class DemoMain2 {
 		//
 	}
 
+	/**
+	 *  设置含有job配置的执行单例
+	 */
+	public static void getConfigurationJob(){
+		ProcessEngineConfiguration configuration = ProcessEngineConfiguration
+				.createProcessEngineConfigurationFromResource("activiti_job.cfg.xml");
+		ProcessEngine processEngine = configuration.buildProcessEngine();
+		RepositoryService repositoryService = processEngine.getRepositoryService();
+		DeploymentBuilder deployment = repositoryService.createDeployment().addClasspathResource("simple_approve.bpmn");;
+		Deployment deploy = deployment.deploy();
+		ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().deploymentId(deploy.getId()).singleResult();
+		log.info("启动成功");
+		//这才是获取到本次流程的实例
+		ProcessInstance processInstance = processEngine.getRuntimeService().startProcessInstanceById(processDefinition.getId());
+
+		TaskService taskService = processEngine.getTaskService();
+		Task task = taskService.createTaskQuery().singleResult();
+		taskService.complete(task.getId());
+	}
+
 	public static void main(String[] args) {
 
 		// 创建使用mysql创建表。

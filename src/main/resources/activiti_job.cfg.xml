@@ -1,0 +1,40 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="processEngineConfiguration" class="org.activiti.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration">
+
+        <!--设置数据库生成策略-->
+        <property name="databaseSchemaUpdate" value="true" />
+        <property name="dataSource" ref="dataSource"/>
+        <!--激活作业执行器-->
+        <property name="asyncExecutorActivate" value="true"/>
+        <property name="asyncExecutor" ref="asyncExecutor"/>
+    </bean>
+        <!--需求注入一个asyncExecutor-->
+    <bean id="asyncExecutor" class="org.activiti.engine.impl.asyncexecutor.DefaultAsyncJobExecutor">
+        <property name="executorService" ref="executorService"/>
+    </bean>
+        <!--对activiti线程池的配置-->
+    <bean id="executorService" class="org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean">
+        <!--设置前缀-->
+        <property name="threadNamePrefix" value="activiti-job-"/>
+        <property name="corePoolSize" value="3"/>
+        <property name="maxPoolSize" value="20"/>
+        <property name="queueCapacity" value="100"/>
+        <property name="rejectedExecutionHandler">
+            <bean class="java.util.concurrent.ThreadPoolExecutor$AbortPolicy"/>
+        </property>
+    </bean>
+        <!--设置数据库连接池-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="url" value="jdbc:mysql://localhost:3306/activiti?useUnicode=true&amp;characterEncoding=UTF-8" />
+        <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="username" value="root" />
+        <property name="password" value="123456" />
+        <property name="initialSize" value="1"/>
+        <property name="maxActive" value="10"/>
+        <property name="filters" value="stat,slf4j"/>
+
+    </bean>
+</beans>
