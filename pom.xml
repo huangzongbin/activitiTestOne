@@ -14,7 +14,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <mysql.version>5.1.30</mysql.version>
+        <mysql.version>8.0.28</mysql.version>
         <druid.version>1.0.29</druid.version>
         <!-- 设置默认编码 -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
